@@ -166,7 +166,12 @@ class MMController extends \Bytecode\Opera\Controller\Controller {
         $mgmodel = new \Bytecode\Opera\Model\MailGroup();
         // SAP Workflow
         $this->workflowmanager->prefinalapprovehook = function() use ($uid, &$form, &$model, &$wfm, &$tpl, &$mgmodel) {
-
+            // Already created in SAP (e.g. a previous approval failed after the BAPI call)? Don't create it again
+            $current = $model->GetForm($uid, "UID");
+            if ($current->PE_MATNR != null && trim($current->PE_MATNR) != "") {
+                $this->reg->logger->Info("MM {$uid} already has material {$current->PE_MATNR}, skipping SAP creation", "Controller\MM");
+                return true;
+            }
 
             $sap = new SAP();
             $res = $sap->PostMMData($form->PI_MATTYPE, $form->PI_MATDESC, $form);
@@ -186,9 +191,13 @@ class MMController extends \Bytecode\Opera\Controller\Controller {
                     }
                 }
 
-                // IF No Errors , update MAT Number
-                if ($error == false) {
-                    $model->UpdateMATNR(ltrim($res["result"]["PE_MATNR"], '0'), $uid);
+                // SAP returned a material number => material exists, persist it even if RETURN has E messages
+                $matnr = isset($res["result"]["PE_MATNR"]) ? ltrim($res["result"]["PE_MATNR"], '0') : "";
+                if ($matnr != "") {
+                    if ($error) {
+                        $this->reg->logger->Info("MM {$uid}: material {$matnr} created with error messages in SAP RETURN", "Controller\MM");
+                    }
+                    $model->UpdateMATNR($matnr, $uid);
                     return true;
                 }
             } else {

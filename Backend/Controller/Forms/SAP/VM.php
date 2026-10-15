@@ -269,6 +269,12 @@ class VMController extends \Bytecode\Opera\Controller\Controller {
         // SAP Workflow
         $this->workflowmanager->prefinalapprovehook = function() use ($uid, &$form, &$model, &$wfm, &$tpl, &$mgmodel) {
             $this->logger->Info("inside prefinalapprovehook, ");
+            // Already created in SAP (e.g. a previous approval failed after the BAPI call)? Don't create it again
+            $current = $model->GetForm($uid, "UID");
+            if ($current->PE_LIFNR != null && trim($current->PE_LIFNR) != "") {
+                $this->logger->Info("VM {$uid} already has vendor {$current->PE_LIFNR}, skipping SAP creation");
+                return true;
+            }
             $sap = new SAP();
             $res = $sap->PostVMData($form);
             // var_dump($res);
@@ -287,10 +293,14 @@ class VMController extends \Bytecode\Opera\Controller\Controller {
                     }
                 }
 
-                // IF No Errors , update MAT Number
-                if ($error == false) {
+                // SAP returned a vendor number => vendor exists, persist it even if RETURN has E messages
+                $lifnr = isset($res["result"]["PE_LIFNR"]) ? ltrim($res["result"]["PE_LIFNR"], '0') : "";
+                if ($lifnr != "") {
+                    if ($error) {
+                        $this->logger->Info("VM {$uid}: vendor {$lifnr} created with error messages in SAP RETURN");
+                    }
                     $this->logger->info("successfully vendor created");
-                    $model->UpdateVendorCode(ltrim($res["result"]["PE_LIFNR"], '0'), $uid);
+                    $model->UpdateVendorCode($lifnr, $uid);
                     return true;
                 }
             } else {

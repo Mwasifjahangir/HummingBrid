@@ -314,8 +314,9 @@ FROM  WFDefaultApprovers INNER JOIN
 
     public function SetStatus($uid, $status, $userid, $comment) {
         $this->logger->Info("set  status request received: {$uid}, {$status}, {$userid}, {$comment} " );
-        $q = "UPDATE [WFTrack] SET [UpdatedOn] = GETDATE(), [Comments] = '" . $comment . "', [Status] = '" . $status . "' WHERE [FRMUID] = '" . $uid . "' AND [UserID] = '" . $userid . "'";
-        $query = $this->db->Query($q);
+        // Parameterized: a quote in the comment must not break the query after SAP has already been called
+        $q = "UPDATE [WFTrack] SET [UpdatedOn] = GETDATE(), [Comments] = ?, [Status] = ? WHERE [FRMUID] = CONVERT(UNIQUEIDENTIFIER, ?) AND [UserID] = ?";
+        $query = $this->db->Query($q, array($comment, $status, $uid, $userid));
         return true;
     }
 
@@ -368,8 +369,8 @@ FROM  WFDefaultApprovers INNER JOIN
 
     public function UpdateStatus($frmuid, $status, $userid, $comments) {
 
-        $q = " UPDATE WFTrack SET [Status] = '" . $status . "' , [Comments]='" . $comments . "' WHERE [FRMUID] = CONVERT(UNIQUEIDENTIFIER, '" . $frmuid . "') AND [UserID] = '" . $userid . "'";
-        $query = $this->db->Query($q);
+        $q = " UPDATE WFTrack SET [Status] = ? , [Comments] = ? WHERE [FRMUID] = CONVERT(UNIQUEIDENTIFIER, ?) AND [UserID] = ?";
+        $query = $this->db->Query($q, array($status, $comments, $frmuid, $userid));
     }
 
     public function GetFormStats($formid = 0, $userid = 0) {

@@ -135,7 +135,12 @@ class CMController extends \Bytecode\Opera\Controller\Controller {
         $mgmodel = new \Bytecode\Opera\Model\MailGroup();
         // SAP Workflow
         $this->workflowmanager->prefinalapprovehook = function() use ($uid, &$form, &$model, &$wfm, &$tpl, &$mgmodel) {
-
+            // Already created in SAP (e.g. a previous approval failed after the BAPI call)? Don't create it again
+            $current = $model->GetForm($uid, "UID");
+            if ($current->PE_KUNNR != null && trim($current->PE_KUNNR) != "") {
+                $this->reg->logger->Info("CM {$uid} already has customer {$current->PE_KUNNR}, skipping SAP creation", "Controller\CM");
+                return true;
+            }
 
             $sap = new SAP();
             $res = $sap->PostCMData($form);
@@ -155,9 +160,13 @@ class CMController extends \Bytecode\Opera\Controller\Controller {
                     }
                 }
 
-                // IF No Errors , update Customer Number
-                if ($error == false) {
-                    $model->UpdateCustomerCode(ltrim($res["result"]["PE_KUNNR"], '0'), $uid);
+                // SAP returned a customer number => customer exists, persist it even if RETURN has E messages
+                $kunnr = isset($res["result"]["PE_KUNNR"]) ? ltrim($res["result"]["PE_KUNNR"], '0') : "";
+                if ($kunnr != "") {
+                    if ($error) {
+                        $this->reg->logger->Info("CM {$uid}: customer {$kunnr} created with error messages in SAP RETURN", "Controller\CM");
+                    }
+                    $model->UpdateCustomerCode($kunnr, $uid);
                     return true;
                 }
             } else {
