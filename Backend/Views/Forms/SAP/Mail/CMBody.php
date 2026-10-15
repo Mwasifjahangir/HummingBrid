@@ -1,0 +1,1 @@
+{{model.NAME}} {{model.BUKRS}} {{model.KTOKD}}

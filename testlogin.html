@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.12/js/adal.min.js"></script>
+        <script>
+            var ADAL = new AuthenticationContext({
+                instance: 'https://login.microsoftonline.com/',
+                tenant: 'common', //COMMON OR YOUR TENANT ID
+
+                clientId: '669a1a8c-6ace-41fe-aed0-a325c3508865', //This is your client ID
+                redirectUri: 'http://localhost', //This is your redirect URI
+
+                callback: userSignedIn,
+                popUp: false
+            });
+
+            function signIn() {
+                ADAL.login();
+            }
+
+            function userSignedIn(err, token) {
+                console.log('userSignedIn called');
+                if (!err) {
+                    console.log("token: " + token);
+                    showWelcomeMessage();
+                } else {
+                    console.error("error: " + err);
+                }
+            }
+
+            function showWelcomeMessage() {
+                var user = ADAL.getCachedUser();
+                var divWelcome = document.getElementById('WelcomeMessage');
+                divWelcome.innerHTML = "Welcome " + user.profile.name;
+            }
+
+        </script> 
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <button id="SignIn" onclick="signIn()">Sign In</button>
+        <h4 id="WelcomeMessage"></h4>
+    </body>
+</html>

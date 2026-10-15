@@ -1,0 +1,19 @@
+{
+    "require": {
+        
+        "twig/twig": "~3.0",
+		"athari/yalinqo": "~2.0",
+        "mongodb/mongodb": "^1.0.0",
+        "league/oauth2-server": "^8.0",
+        "league/oauth2-client": "^2.0",
+        "thenetworg/oauth2-azure": "^2.0",
+        "gargron/fileupload": "^1.2",
+        "dompdf/dompdf": "^2.0.0",
+        "kphoen/rulerz": "^0.21.1",
+        "mikehaertl/phpwkhtmltopdf": "^2.2",
+        "swiftmailer/swiftmailer": "6.0",
+        "adldap2/adldap2": "^10.5",
+        "monolog/monolog": "^2.9"
+      
+    }
+}

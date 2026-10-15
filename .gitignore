@@ -1,0 +1,40 @@
+# --- Secrets / environment config (contain DB, SAP RFC and OAuth credentials) ---
+/config.php
+/config.php.new
+/Config/config.production.php
+/Config/config.production_bck.php
+/Config/config.quality.php
+/Backend/Libs/Microsoft.php
+.env
+.env.*
+
+# --- User data ---
+/users.json
+
+# --- Dependencies (restore with composer install) ---
+vendor/
+node_modules/
+
+# --- Runtime cache / generated exports (WorkFlow HTMLExport / PDFExport) ---
+Cache/
+
+# --- Logs & SAP NW RFC traces ---
+*.log
+*.trc
+dev_rfc*
+
+# --- Backups / editor leftovers ---
+~*
+*~
+*_bck.*
+*.bak
+*.orig
+*.swp
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+nbproject/
+.DS_Store
+Thumbs.db
+desktop.ini
